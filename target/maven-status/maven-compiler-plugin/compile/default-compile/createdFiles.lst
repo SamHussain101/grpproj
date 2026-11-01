@@ -1,0 +1,13 @@
+com\comp3607grp\telemetry\CompilationListener.class
+com\comp3607grp\telemetry\TelemetryExtension.class
+com\comp3607grp\Main.class
+com\comp3607grp\telemetry\EventBuffer.class
+com\comp3607grp\telemetry\ProjectLifecycleListener.class
+com\comp3607grp\telemetry\TelemetryManager.class
+com\comp3607grp\telemetry\TelemetryEvent.class
+com\comp3607grp\telemetry\ExecutionListener$1.class
+com\comp3607grp\telemetry\ExecutionListener.class
+com\comp3607grp\telemetry\TelemetryMenuGenerator.class
+com\comp3607grp\telemetry\TelemetryWorker.class
+com\comp3607grp\telemetry\EditorActivityListener.class
+com\comp3607grp\telemetry\ClassLifecycleListener.class
