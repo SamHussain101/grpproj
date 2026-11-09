@@ -17,7 +17,6 @@
 
     <dependencies>
 
-        <!-- BlueJ 5 local API dependency -->
         <dependency>
             <groupId>org.bluej</groupId>
             <artifactId>bluej-api</artifactId>
@@ -26,7 +25,6 @@
             <systemPath>C:/Program Files/BlueJ/lib/bluej.jar</systemPath>
         </dependency>
 
-        <!-- JUnit 5 for testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -34,7 +32,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- JavaFX dependencies supplied by BlueJ -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
@@ -74,6 +71,12 @@
         <version>2.13.2</version>
     </dependency>
 
+    <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox</artifactId>
+        <version>3.0.5</version>
+    </dependency>
+
     </dependencies>
 
     
@@ -92,6 +95,32 @@
                     </manifest>
                 </archive>
             </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/*.SF</exclude>
+                                    <exclude>META-INF/*.DSA</exclude>
+                                    <exclude>META-INF/*.RSA</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                    </configuration>
+                </execution>
+            </executions>
         </plugin>
     </plugins>
 </build>

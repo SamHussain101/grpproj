@@ -2,10 +2,14 @@
 package com.comp3607grp.telemetry;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import bluej.extensions2.BClass;
+import bluej.extensions2.BMethod;
 import bluej.extensions2.BPackage;
 import bluej.extensions2.BProject;
 import bluej.extensions2.editor.JavaEditor;
@@ -23,6 +27,8 @@ public class ClassLifecycleListener implements ClassListener {
     private final Map<BClass, JavaEditor> attachedEditors =
             new IdentityHashMap<>();
 
+    private final Map<String, Set<String>> knownMethods = new HashMap<>();
+
     public ClassLifecycleListener(EventBuffer buffer) {
         if (buffer == null) {
             throw new IllegalArgumentException("EventBuffer cannot be null");
@@ -34,18 +40,30 @@ public class ClassLifecycleListener implements ClassListener {
     public synchronized void classStateChanged(ClassEvent event) {
         recordClassEvent(event, "CLASS_STATE_CHANGED");
         attachEditorListener(event.getBClass());
+        if (event.isClassCompiled()) {
+            recordMethodChanges(event);
+        }
     }
 
     @Override
     public synchronized void classNameChanged(ClassEvent event) {
         recordClassEvent(event, "CLASS_RENAMED");
         attachEditorListener(event.getBClass());
+        if (event.getOldName() != null && event.getBClass() != null) {
+            Set<String> methods = knownMethods.remove(event.getOldName());
+            if (methods != null) {
+                knownMethods.put(event.getBClass().getName(), methods);
+            }
+        }
     }
 
     @Override
     public synchronized void classRemoved(ClassEvent event) {
         recordClassEvent(event, "CLASS_REMOVED");
         detachEditorListener(event.getBClass());
+        if (event.getBClass() != null) {
+            knownMethods.remove(event.getBClass().getName());
+        }
     }
 
     private void recordClassEvent(ClassEvent event, String eventType) {
@@ -71,6 +89,68 @@ public class ClassLifecycleListener implements ClassListener {
         }
 
         buffer.addEvent(telemetryEvent);
+    }
+
+    private void recordMethodChanges(ClassEvent event) {
+
+        BClass blueJClass = event.getBClass();
+        if (blueJClass == null) {
+            return;
+        }
+
+        Set<String> current = new TreeSet<>();
+        try {
+            for (BMethod method : blueJClass.getDeclaredMethods()) {
+                current.add(signature(method));
+            }
+        } catch (Exception e) {
+            return;
+        }
+
+        String className = blueJClass.getName();
+        Set<String> previous = knownMethods.getOrDefault(className, Set.of());
+
+        for (String method : current) {
+            if (!previous.contains(method)) {
+                recordMethodEvent(event, "METHOD_ADDED", className, method);
+            }
+        }
+        for (String method : previous) {
+            if (!current.contains(method)) {
+                recordMethodEvent(event, "METHOD_REMOVED", className, method);
+            }
+        }
+
+        knownMethods.put(className, current);
+    }
+
+    private void recordMethodEvent(ClassEvent event, String eventType, String className, String method) {
+
+        TelemetryEvent telemetryEvent = new TelemetryEvent(eventType, LocalDateTime.now());
+        telemetryEvent.setClassName(className);
+        telemetryEvent.setMethodName(method);
+        telemetryEvent.setStatus("SUCCESS");
+
+        try {
+            telemetryEvent.setProjectName(event.getPackage().getProject().getName());
+        } catch (Exception e) {
+            telemetryEvent.setStatus("UNKNOWN");
+        }
+
+        buffer.addEvent(telemetryEvent);
+    }
+
+    private static String signature(BMethod method) {
+
+        StringBuilder sb = new StringBuilder(method.getName()).append('(');
+        Class<?>[] params = method.getParameterTypes();
+        for (int i = 0; i < params.length; i++) {
+            if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append(params[i].getSimpleName());
+        }
+        return sb.append(')').toString();
     }
 
     private synchronized void attachEditorListener(BClass blueJClass) {
