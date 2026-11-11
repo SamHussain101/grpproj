@@ -17,7 +17,7 @@ public class ReportAggregatorTest {
         return e;
     }
 
-    @test void calculatesCompilationStatisticsAndErrorFrequency() {
+    @Test void calculatesCompilationStatisticsAndErrorFrequency() {
         TelemetryEvent good = event("COMPILE", 0, "SUCCESS");
         TelemetryEvent bad = event("COMPILE", 20, "FAILED");
         bad.addError("Missing symbol", 4);
