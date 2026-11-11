@@ -5,14 +5,57 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import com.comp3607grp.telemetry.observer.TelemetryObserver;
 
 public class TelemetryManager {
 
     private final List<TelemetryEvent> events =
             new ArrayList<>();
 
+    // Observers are kept in a thread-safe list so they can be added or removed
+    // while events are being recorded.
+    private final CopyOnWriteArrayList<TelemetryObserver> observers =
+            new CopyOnWriteArrayList<>();
+
     private LocalDateTime previousCompileTime;
     private TelemetryEvent currentCompile;
+
+    /** Registers an observer. Adding the same observer twice has no effect. */
+    public void addObserver(TelemetryObserver observer) {
+
+        if (observer == null) {
+            throw new IllegalArgumentException(
+                    "Observer cannot be null"
+            );
+        }
+
+        observers.addIfAbsent(observer);
+    }
+
+    /** Unregisters an observer. Unknown or null observers are ignored. */
+    public void removeObserver(TelemetryObserver observer) {
+
+        if (observer != null) {
+            observers.remove(observer);
+        }
+    }
+
+    // Stores the event first, so a failing observer can never lose data,
+    // then notifies every observer on the calling thread.
+    private void storeAndNotify(TelemetryEvent event) {
+
+        events.add(event);
+
+        for (TelemetryObserver observer : observers) {
+            try {
+                observer.onEventRecorded(event);
+            } catch (RuntimeException e) {
+                System.err.println("Telemetry observer failed: " + e);
+            }
+        }
+    }
 
     public synchronized void recordEvent(
             TelemetryEvent event) {
@@ -23,7 +66,7 @@ public class TelemetryManager {
             );
         }
 
-        events.add(event);
+        storeAndNotify(event);
     }
 
     public synchronized void recordProjectEvent(
@@ -34,7 +77,7 @@ public class TelemetryManager {
         event.setProjectName(projectName);
         event.setStatus("SUCCESS");
 
-        events.add(event);
+        storeAndNotify(event);
     }
 
     public synchronized void recordClassEvent(
@@ -48,7 +91,7 @@ public class TelemetryManager {
         event.setClassName(className);
         event.setStatus("SUCCESS");
 
-        events.add(event);
+        storeAndNotify(event);
     }
 
     public synchronized void recordEditorActivity(
@@ -64,7 +107,7 @@ public class TelemetryManager {
         event.setActivityDurationSeconds(durationSeconds);
         event.setStatus("RECORDED");
 
-        events.add(event);
+        storeAndNotify(event);
     }
 
     public synchronized void compileStarted() {
@@ -86,7 +129,7 @@ public class TelemetryManager {
         previousCompileTime = now;
         currentCompile = event;
 
-        events.add(event);
+        storeAndNotify(event);
     }
 
     public synchronized void compileError(
@@ -126,7 +169,7 @@ public class TelemetryManager {
 
         event.setStatus(status);
 
-        events.add(event);
+        storeAndNotify(event);
     }
 
     public synchronized void recordRuntimeException(
@@ -140,7 +183,7 @@ public class TelemetryManager {
         event.setExceptionMessage(exceptionMessage);
         event.setConsoleSummary(consoleSummary);
 
-        events.add(event);
+        storeAndNotify(event);
     }
 
     private TelemetryEvent createEvent(String eventType) {
