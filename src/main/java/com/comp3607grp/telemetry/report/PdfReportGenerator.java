@@ -10,7 +10,6 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import java.awt.Color;
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,7 +18,7 @@ import java.util.Map;
 
 import com.comp3607grp.telemetry.analytics.ReportAggregator;
 
-public class PdfReportGenerator implements ReportWriter {
+public class PdfReportGenerator extends AbstractReportWriter {
 
     private static final PDType1Font BOLD = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
     private static final PDType1Font REGULAR = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
@@ -50,14 +49,7 @@ public class PdfReportGenerator implements ReportWriter {
     }
 
     @Override
-    public Path write(ReportAggregator agg, Path file) throws IOException {
-        if (agg == null) {
-            throw new IllegalArgumentException("Aggregator cannot be null");
-        }
-        Path parent = file.toAbsolutePath().getParent();
-        if (parent != null) {
-            Files.createDirectories(parent);
-        }
+    protected void writeReport(ReportAggregator agg, Path file) throws IOException {
         try (PDDocument doc = new PDDocument()) {
             try (PageWriter w = new PageWriter(doc)) {
                 writeTitle(w, agg);
@@ -69,7 +61,6 @@ public class PdfReportGenerator implements ReportWriter {
             }
             doc.save(file.toFile());
         }
-        return file;
     }
 
     private void writeTitle(PageWriter w, ReportAggregator agg) throws IOException {

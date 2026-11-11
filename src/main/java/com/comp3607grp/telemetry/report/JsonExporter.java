@@ -17,7 +17,7 @@ import java.util.Map;
 import com.comp3607grp.telemetry.TelemetryEvent;
 import com.comp3607grp.telemetry.analytics.ReportAggregator;
 
-public class JsonExporter implements ReportWriter {
+public class JsonExporter extends AbstractReportWriter {
 
     public static final String DEFAULT_STUDENT_ID = "STUDENT_ID";
 
@@ -58,13 +58,8 @@ public class JsonExporter implements ReportWriter {
     }
 
     @Override
-    public Path write(ReportAggregator agg, Path file) throws IOException {
-        Path parent = file.toAbsolutePath().getParent();
-        if (parent != null) {
-            Files.createDirectories(parent);
-        }
+    protected void writeReport(ReportAggregator agg, Path file) throws IOException {
         Files.writeString(file, toJson(agg), StandardCharsets.UTF_8);
-        return file;
     }
 
 
