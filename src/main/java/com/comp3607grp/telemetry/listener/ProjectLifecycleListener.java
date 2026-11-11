@@ -7,19 +7,19 @@ import bluej.extensions2.BProject;
 import bluej.extensions2.event.PackageEvent;
 import bluej.extensions2.event.PackageListener;
 
-import com.comp3607grp.telemetry.EventBuffer;
 import com.comp3607grp.telemetry.TelemetryEvent;
+import com.comp3607grp.telemetry.TelemetryManager;
 
 public class ProjectLifecycleListener implements PackageListener {
 
-    private final EventBuffer buffer;
+    private final TelemetryManager manager;
 
-    public ProjectLifecycleListener(EventBuffer buffer) {
-        if (buffer == null) {
-            throw new IllegalArgumentException("EventBuffer cannot be null");
+    public ProjectLifecycleListener(TelemetryManager manager) {
+        if (manager == null) {
+            throw new IllegalArgumentException("TelemetryManager cannot be null");
         }
 
-        this.buffer = buffer;
+        this.manager = manager;
     }
 
     @Override
@@ -49,6 +49,6 @@ public class ProjectLifecycleListener implements PackageListener {
             telemetryEvent.setStatus("UNKNOWN");
         }
 
-        buffer.addEvent(telemetryEvent);
+        manager.recordEvent(telemetryEvent);
     }
 }

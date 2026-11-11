@@ -15,12 +15,12 @@ import bluej.extensions2.editor.JavaEditor;
 import bluej.extensions2.event.ClassEvent;
 import bluej.extensions2.event.ClassListener;
 
-import com.comp3607grp.telemetry.EventBuffer;
 import com.comp3607grp.telemetry.TelemetryEvent;
+import com.comp3607grp.telemetry.TelemetryManager;
 
 public class ClassLifecycleListener implements ClassListener {
 
-    private final EventBuffer buffer;
+    private final TelemetryManager manager;
 
     // Keep track of editors that already have a listener attached.
     private final Map<BClass, EditorActivityListener> editorListeners =
@@ -31,11 +31,11 @@ public class ClassLifecycleListener implements ClassListener {
 
     private final Map<String, Set<String>> knownMethods = new HashMap<>();
 
-    public ClassLifecycleListener(EventBuffer buffer) {
-        if (buffer == null) {
-            throw new IllegalArgumentException("EventBuffer cannot be null");
+    public ClassLifecycleListener(TelemetryManager manager) {
+        if (manager == null) {
+            throw new IllegalArgumentException("TelemetryManager cannot be null");
         }
-        this.buffer = buffer;
+        this.manager = manager;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class ClassLifecycleListener implements ClassListener {
             telemetryEvent.setStatus("UNKNOWN");
         }
 
-        buffer.addEvent(telemetryEvent);
+        manager.recordEvent(telemetryEvent);
     }
 
     private void recordMethodChanges(ClassEvent event) {
@@ -139,7 +139,7 @@ public class ClassLifecycleListener implements ClassListener {
             telemetryEvent.setStatus("UNKNOWN");
         }
 
-        buffer.addEvent(telemetryEvent);
+        manager.recordEvent(telemetryEvent);
     }
 
     private static String signature(BMethod method) {
@@ -169,7 +169,7 @@ public class ClassLifecycleListener implements ClassListener {
             }
 
             EditorActivityListener listener =
-                    new EditorActivityListener(buffer, blueJClass);
+                    new EditorActivityListener(manager, blueJClass);
 
             editor.addDocumentListener(listener);
 

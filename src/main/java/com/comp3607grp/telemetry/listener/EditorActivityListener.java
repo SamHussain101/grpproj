@@ -6,26 +6,26 @@ import java.time.LocalDateTime;
 import bluej.extensions2.BClass;
 import bluej.extensions2.editor.DocumentListener;
 
-import com.comp3607grp.telemetry.EventBuffer;
 import com.comp3607grp.telemetry.TelemetryEvent;
+import com.comp3607grp.telemetry.TelemetryManager;
 
 public class EditorActivityListener implements DocumentListener {
 
-    private final EventBuffer buffer;
+    private final TelemetryManager manager;
     private final BClass blueJClass;
 
     private LocalDateTime previousEditTime;
     private int totalEdits;
 
-    public EditorActivityListener(EventBuffer buffer, BClass blueJClass) {
+    public EditorActivityListener(TelemetryManager manager, BClass blueJClass) {
 
-        if (buffer == null || blueJClass == null) {
+        if (manager == null || blueJClass == null) {
             throw new IllegalArgumentException(
-                "Buffer and class cannot be null"
+                "Manager and class cannot be null"
             );
         }
 
-        this.buffer = buffer;
+        this.manager = manager;
         this.blueJClass = blueJClass;
         this.previousEditTime = null;
         this.totalEdits = 0;
@@ -70,6 +70,6 @@ public class EditorActivityListener implements DocumentListener {
             event.setActivityDurationSeconds(0);
         }
 
-        buffer.addEvent(event);
+        manager.recordEvent(event);
     }
 }

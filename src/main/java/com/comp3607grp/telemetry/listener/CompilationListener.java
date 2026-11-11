@@ -5,20 +5,20 @@ import java.time.LocalDateTime;
 import bluej.extensions2.event.CompileEvent;
 import bluej.extensions2.event.CompileListener;
 
-import com.comp3607grp.telemetry.EventBuffer;
 import com.comp3607grp.telemetry.TelemetryEvent;
+import com.comp3607grp.telemetry.TelemetryManager;
 
 public class CompilationListener implements CompileListener {
 
-    private final EventBuffer buffer;
+    private final TelemetryManager manager;
     private TelemetryEvent currentCompile;
 
-    public CompilationListener(EventBuffer buffer) {
-        if (buffer == null) {
-            throw new IllegalArgumentException("EventBuffer cannot be null");
+    public CompilationListener(TelemetryManager manager) {
+        if (manager == null) {
+            throw new IllegalArgumentException("TelemetryManager cannot be null");
         }
 
-        this.buffer = buffer;
+        this.manager = manager;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class CompilationListener implements CompileListener {
     private void finishCompilation(String status) {
         if (currentCompile != null) {
             currentCompile.setStatus(status);
-            buffer.addEvent(currentCompile);
+            manager.recordEvent(currentCompile);
             currentCompile = null;
         }
     }

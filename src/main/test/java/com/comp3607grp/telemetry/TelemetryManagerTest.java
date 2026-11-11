@@ -142,4 +142,41 @@ public class TelemetryManagerTest {
 
         assertEquals(List.of(1), sizeSeenByObserver);
     }
+
+    // ---- Direct recording from several threads (listeners call the manager directly) ----
+
+    @Test void keepsEventsFromSeveralThreadsInOrderPerThread() throws Exception {
+        TelemetryManager m = new TelemetryManager();
+        int threads = 4;
+        int perThread = 250;
+        List<Thread> workers = new ArrayList<>();
+
+        for (int t = 0; t < threads; t++) {
+            String name = "T" + t;
+            Thread worker = new Thread(() -> {
+                for (int i = 0; i < perThread; i++) {
+                    TelemetryEvent e = new TelemetryEvent("RUN", java.time.LocalDateTime.now());
+                    e.setClassName(name);
+                    e.setMethodName(Integer.toString(i));
+                    m.recordEvent(e);
+                }
+            });
+            workers.add(worker);
+            worker.start();
+        }
+        for (Thread worker : workers) {
+            worker.join(10_000);
+        }
+
+        List<TelemetryEvent> events = m.getEvents();
+        assertEquals(threads * perThread, events.size());
+
+        // Within each thread the events must appear in the order they were recorded.
+        int[] next = new int[threads];
+        for (TelemetryEvent e : events) {
+            int t = Integer.parseInt(e.getClassName().substring(1));
+            assertEquals(next[t], Integer.parseInt(e.getMethodName()));
+            next[t]++;
+        }
+    }
 }
