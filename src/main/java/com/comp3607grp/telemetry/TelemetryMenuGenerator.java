@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.comp3607grp.telemetry.report.ReportExporter;
+
 public class TelemetryMenuGenerator extends MenuGenerator {
 
     private final TelemetryManager manager;
