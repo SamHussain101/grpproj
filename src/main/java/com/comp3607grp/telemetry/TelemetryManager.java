@@ -10,23 +10,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.comp3607grp.telemetry.observer.TelemetryObserver;
 
 /**
- * Records and stores telemetry events and notifies observers. It does not
- * calculate statistics; use ReportAggregator for that.
+ * Records and stores telemetry events and notifies observers
  */
 public class TelemetryManager {
 
     private final List<TelemetryEvent> events =
             new ArrayList<>();
 
-    // Observers are kept in a thread-safe list so they can be added or removed
-    // while events are being recorded.
+   
     private final CopyOnWriteArrayList<TelemetryObserver> observers =
             new CopyOnWriteArrayList<>();
 
     private LocalDateTime previousCompileTime;
     private TelemetryEvent currentCompile;
-
-    /** Registers an observer. Adding the same observer twice has no effect. */
     public void addObserver(TelemetryObserver observer) {
 
         if (observer == null) {
@@ -37,8 +33,6 @@ public class TelemetryManager {
 
         observers.addIfAbsent(observer);
     }
-
-    /** Unregisters an observer. Unknown or null observers are ignored. */
     public void removeObserver(TelemetryObserver observer) {
 
         if (observer != null) {
@@ -46,8 +40,6 @@ public class TelemetryManager {
         }
     }
 
-    // Stores the event first, so a failing observer can never lose data,
-    // then notifies every observer on the calling thread.
     private void storeAndNotify(TelemetryEvent event) {
 
         events.add(event);

@@ -6,13 +6,8 @@ import java.util.List;
 import bluej.extensions2.BlueJ;
 import bluej.extensions2.Extension;
 
-import com.comp3607grp.telemetry.listener.ClassLifecycleListener;
-import com.comp3607grp.telemetry.listener.CompilationListener;
-import com.comp3607grp.telemetry.listener.ExecutionListener;
-import com.comp3607grp.telemetry.listener.ProjectLifecycleListener;
-import com.comp3607grp.telemetry.report.JsonExporter;
-import com.comp3607grp.telemetry.report.PdfReportGenerator;
-import com.comp3607grp.telemetry.report.ReportExporter;
+import com.comp3607grp.telemetry.listener.*;
+import com.comp3607grp.telemetry.report.*;
 
 public class TelemetryExtension extends Extension {
 

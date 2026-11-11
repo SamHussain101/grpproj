@@ -22,7 +22,7 @@ public class ClassLifecycleListener implements ClassListener {
 
     private final TelemetryManager manager;
 
-    // Keep track of editors that already have a listener attached.
+    //track the editors that have listners
     private final Map<BClass, EditorActivityListener> editorListeners =
             new IdentityHashMap<>();
 

@@ -5,39 +5,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One telemetry record: a compilation, a program run, an editor change, or a
- * project/class/method lifecycle change. Only the fields that apply to an event
- * type are normally filled in; the rest keep their defaults.
+ * One telemetry record
  */
 public class TelemetryEvent {
 
-    /** Status of an event that has not been completed yet. */
     public static final String DEFAULT_STATUS = "IN PROGRESS";
-
-    /** Value of {@link #getIntervalSeconds()} when there is no previous event. */
     public static final double NO_INTERVAL = -1;
-
     private final String eventType;
     private final LocalDateTime timestamp;
-
     private String status = DEFAULT_STATUS;
-
-    // Compilation details. Message and line number are always stored together.
     private String errorCode;
     private final List<CompileError> errors = new ArrayList<>();
-
     private double intervalSeconds = NO_INTERVAL;
 
-    // Execution details
     private String exceptionMessage;
     private String consoleSummary;
 
-    // Editor activity details
     private double activityDurationSeconds;
     private int insertedCharacters;
     private int deletedCharacters;
 
-    // Location details
     private String projectName;
     private String className;
     private String methodName;
