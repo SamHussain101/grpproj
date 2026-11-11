@@ -9,6 +9,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.comp3607grp.telemetry.observer.TelemetryObserver;
 
+/**
+ * Records and stores telemetry events and notifies observers. It does not
+ * calculate statistics; use ReportAggregator for that.
+ */
 public class TelemetryManager {
 
     private final List<TelemetryEvent> events =
@@ -197,99 +201,5 @@ public class TelemetryManager {
     public synchronized List<TelemetryEvent> getEvents() {
 
         return new ArrayList<>(events);
-    }
-
-
-    public synchronized int getTotalCompilations() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().equals("COMPILE"))
-                .count();
-    }
-
-    public synchronized int getSuccessfulCompilations() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().equals("COMPILE")
-                        && e.getStatus().equals("SUCCESS"))
-                .count();
-    }
-
-    public synchronized int getFailedCompilations() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().equals("COMPILE")
-                        && e.getStatus().equals("FAILED"))
-                .count();
-    }
-
-    public synchronized int getTotalErrors() {
-
-        return events.stream()
-                .filter(e -> e.getEventType().equals("COMPILE"))
-                .mapToInt(e -> e.getErrorMessages().size())
-                .sum();
-    }
-
-    public synchronized int getTotalRuns() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().equals("RUN"))
-                .count();
-    }
-
-    public synchronized int getSuccessfulRuns() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().equals("RUN")
-                        && e.getStatus().equals("SUCCESS"))
-                .count();
-    }
-
-    public synchronized int getFailedRuns() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().equals("RUN")
-                        && e.getStatus().equals("FAILED"))
-                .count();
-    }
-
-    public synchronized int getTotalProjectEvents() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().startsWith("PROJECT_"))
-                .count();
-    }
-
-    public synchronized int getTotalClassEvents() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().startsWith("CLASS_"))
-                .count();
-    }
-
-
-    public synchronized double getTotalEditorActivitySeconds() {
-
-        return events.stream()
-                .filter(e -> e.getEventType().equals("EDITOR_ACTIVITY"))
-                .mapToDouble(TelemetryEvent::getActivityDurationSeconds)
-                .sum();
-    }
-
-    public synchronized int getTotalEditorActivities() {
-
-        return (int) events.stream()
-                .filter(e -> e.getEventType().equals("EDITOR_ACTIVITY"))
-                .count();
-    }
-
-    public synchronized void printSummary() {
-        System.out.println("Total events: " + events.size());
-        System.out.println("Total compilations: " + getTotalCompilations());
-        System.out.println("Successful compilations: " + getSuccessfulCompilations());
-        System.out.println("Failed compilations: " + getFailedCompilations());
-        System.out.println("Total errors: " + getTotalErrors());
-        System.out.println("Total runs: " + getTotalRuns());
     }
 }

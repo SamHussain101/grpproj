@@ -11,9 +11,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.comp3607grp.telemetry.TelemetryEvent;
 
+/**
+ * Calculates every statistic shown in the menu summary and in the JSON and PDF
+ * reports from a list of recorded events. It keeps no counters of its own; each
+ * value is derived from the events it was given.
+ */
 public class ReportAggregator {
 
     public static final String COMPILE = "COMPILE";
@@ -71,12 +77,9 @@ public class ReportAggregator {
     }
 
     public double getActiveTimeSeconds() {
-        double total = 0;
-        for (TelemetryEvent e : events) {
-            if (EDITOR_ACTIVITY.equals(e.getEventType())) {
-                total += e.getActivityDurationSeconds();
-            }
-        }
+        double total = ofType(EDITOR_ACTIVITY)
+                .map(TelemetryEvent::getActivityDurationSeconds)
+                .reduce(0.0, Double::sum);
         return Math.min(total, getSessionDurationSeconds());
     }
 
@@ -94,23 +97,15 @@ public class ReportAggregator {
     }
 
     public int getCharactersInserted() {
-        int total = 0;
-        for (TelemetryEvent e : events) {
-            if (EDITOR_ACTIVITY.equals(e.getEventType())) {
-                total += e.getInsertedCharacters();
-            }
-        }
-        return total;
+        return ofType(EDITOR_ACTIVITY)
+                .mapToInt(TelemetryEvent::getInsertedCharacters)
+                .sum();
     }
 
     public int getCharactersDeleted() {
-        int total = 0;
-        for (TelemetryEvent e : events) {
-            if (EDITOR_ACTIVITY.equals(e.getEventType())) {
-                total += e.getDeletedCharacters();
-            }
-        }
-        return total;
+        return ofType(EDITOR_ACTIVITY)
+                .mapToInt(TelemetryEvent::getDeletedCharacters)
+                .sum();
     }
 
     public double getEditsPerActiveMinute() {
@@ -136,13 +131,9 @@ public class ReportAggregator {
     }
 
     public int getTotalCompileErrors() {
-        int total = 0;
-        for (TelemetryEvent e : events) {
-            if (COMPILE.equals(e.getEventType())) {
-                total += e.getErrorMessages().size();
-            }
-        }
-        return total;
+        return ofType(COMPILE)
+                .mapToInt(e -> e.getErrorMessages().size())
+                .sum();
     }
 
     public double getAverageSecondsBetweenCompiles() {
@@ -223,14 +214,13 @@ public class ReportAggregator {
 
     public record TimelineEntry(LocalDateTime timestamp, String action, String name) { }
 
+    private Stream<TelemetryEvent> ofType(String type) {
+        return events.stream().filter(e -> type.equals(e.getEventType()));
+    }
+
     private int count(String type, String status) {
-        int count = 0;
-        for (TelemetryEvent e : events) {
-            if (type.equals(e.getEventType())
-                    && (status == null || status.equals(e.getStatus()))) {
-                count++;
-            }
-        }
-        return count;
+        return (int) ofType(type)
+                .filter(e -> status == null || status.equals(e.getStatus()))
+                .count();
     }
 }

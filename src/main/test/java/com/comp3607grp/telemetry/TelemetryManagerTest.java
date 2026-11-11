@@ -25,10 +25,10 @@ public class TelemetryManagerTest {
         m.compileStarted();
         m.compileError("E1", "Missing symbol", 7);
         m.compileFailed();
-        assertEquals(2, m.getTotalCompilations());
-        assertEquals(1, m.getSuccessfulCompilations());
-        assertEquals(1, m.getFailedCompilations());
-        assertEquals(1, m.getTotalErrors());
+        assertEquals(2, m.getEvents().size());
+        assertEquals("SUCCESS", m.getEvents().get(0).getStatus());
+        assertEquals("FAILED", m.getEvents().get(1).getStatus());
+        assertEquals(List.of("Missing symbol"), m.getEvents().get(1).getErrorMessages());
         assertEquals("E1", m.getEvents().get(1).getErrorCode());
     }
     @Test void rejectsNullEventsAndProtectsEventList() {
@@ -43,7 +43,9 @@ public class TelemetryManagerTest {
         TelemetryManager m = new TelemetryManager();
         m.recordRun("SUCCESS");
         m.recordRuntimeException("NullPointerException", "trace");
-        assertEquals(2, m.getTotalRuns());
+        assertEquals(2, m.getEvents().size());
+        assertEquals("SUCCESS", m.getEvents().get(0).getStatus());
+        assertEquals("FAILED", m.getEvents().get(1).getStatus());
         assertEquals("NullPointerException", m.getEvents().get(1).getExceptionMessage());
     }
     
