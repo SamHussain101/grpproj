@@ -22,15 +22,27 @@ public class ExecutionListener implements InvocationFinishedListener {
 
     @Override
     public void invocationFinished(InvocationFinishedEvent event) {
+        manager.recordEvent(toTelemetryEvent(
+            event.getEventType(),
+            event.getClassName(),
+            event.getMethodName(),
+            event.getObjectName(),
+            event.getResult(),
+            LocalDateTime.now()
+        ));
+    }
 
-        TelemetryEvent telemetryEvent =
-            new TelemetryEvent("RUN", LocalDateTime.now());
+    static TelemetryEvent toTelemetryEvent(InvocationFinishedEvent.EventType type,
+            String className, String methodName, String objectName,
+            Object result, LocalDateTime when) {
 
-        telemetryEvent.setClassName(event.getClassName());
-        telemetryEvent.setMethodName(event.getMethodName());
-        telemetryEvent.setObjectName(event.getObjectName());
+        TelemetryEvent telemetryEvent = new TelemetryEvent("RUN", when);
 
-        switch (event.getEventType()) {
+        telemetryEvent.setClassName(className);
+        telemetryEvent.setMethodName(methodName);
+        telemetryEvent.setObjectName(objectName);
+
+        switch (type) {
 
             case NORMAL_EXIT:
                 telemetryEvent.setStatus("SUCCESS");
@@ -38,13 +50,8 @@ public class ExecutionListener implements InvocationFinishedListener {
 
             case EXCEPTION_EXIT:
                 telemetryEvent.setStatus("FAILED");
-
-                Object result = event.getResult();
-
                 if (result != null) {
-                    telemetryEvent.setExceptionMessage(
-                        result.toString()
-                    );
+                    telemetryEvent.setExceptionMessage(result.toString());
                 }
                 break;
 
@@ -52,11 +59,11 @@ public class ExecutionListener implements InvocationFinishedListener {
                 telemetryEvent.setStatus("TERMINATED");
                 break;
 
-            case UNKNOWN_EXIT:
+            default:
                 telemetryEvent.setStatus("UNKNOWN");
                 break;
         }
 
-        manager.recordEvent(telemetryEvent);
+        return telemetryEvent;
     }
 }

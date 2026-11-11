@@ -2,6 +2,7 @@ package com.comp3607grp.telemetry.listener;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.function.Supplier;
 
 import bluej.extensions2.BClass;
 import bluej.extensions2.editor.DocumentListener;
@@ -11,60 +12,70 @@ import com.comp3607grp.telemetry.TelemetryManager;
 
 public class EditorActivityListener implements DocumentListener {
 
+    static final double IDLE_THRESHOLD_SECONDS = 60;
+
     private final TelemetryManager manager;
-    private final BClass blueJClass;
+    private final String className;
+    private final Supplier<LocalDateTime> clock;
 
     private LocalDateTime previousEditTime;
-    private int totalEdits;
 
     public EditorActivityListener(TelemetryManager manager, BClass blueJClass) {
+        this(manager, nameOf(manager, blueJClass), LocalDateTime::now);
+    }
 
-        if (manager == null || blueJClass == null) {
+    EditorActivityListener(TelemetryManager manager, String className,
+            Supplier<LocalDateTime> clock) {
+
+        if (manager == null || className == null) {
             throw new IllegalArgumentException(
                 "Manager and class cannot be null"
             );
         }
 
         this.manager = manager;
-        this.blueJClass = blueJClass;
-        this.previousEditTime = null;
-        this.totalEdits = 0;
+        this.className = className;
+        this.clock = clock;
+    }
+
+    private static String nameOf(TelemetryManager manager, BClass blueJClass) {
+        if (manager == null || blueJClass == null) {
+            throw new IllegalArgumentException(
+                "Manager and class cannot be null"
+            );
+        }
+        return blueJClass.getName();
     }
 
     @Override
     public synchronized void textReplaced(int offset, String oldText,
             String newText, int position, int length) {
+        recordEdit(oldText, newText);
+    }
 
-        LocalDateTime now = LocalDateTime.now();
+    synchronized void recordEdit(String oldText, String newText) {
 
-        TelemetryEvent event =
-                new TelemetryEvent("EDITOR_ACTIVITY", now);
+        LocalDateTime now = clock.get();
 
-        event.setClassName(blueJClass.getName());
+        TelemetryEvent event = new TelemetryEvent("EDITOR_ACTIVITY", now);
+
+        event.setClassName(className);
         event.setStatus("RECORDED");
 
         double interval = 0;
 
         if (previousEditTime != null) {
-            interval = Duration.between(previousEditTime, now)
-                    .toMillis() / 1000.0;
-
+            interval = Math.max(0,
+                Duration.between(previousEditTime, now).toMillis() / 1000.0);
             event.setIntervalSeconds(interval);
         }
 
         previousEditTime = now;
-        totalEdits++;
 
-        int insertedCharacters =
-                newText == null ? 0 : newText.length();
+        event.setInsertedCharacters(newText == null ? 0 : newText.length());
+        event.setDeletedCharacters(oldText == null ? 0 : oldText.length());
 
-        int deletedCharacters =
-             oldText == null ? 0 : oldText.length();
-
-        event.setInsertedCharacters(insertedCharacters);
-        event.setDeletedCharacters(deletedCharacters);
-
-        if (interval > 0 && interval <= 60) {
+        if (interval > 0 && interval <= IDLE_THRESHOLD_SECONDS) {
             event.setActivityDurationSeconds(interval);
         } else {
             event.setActivityDurationSeconds(0);
