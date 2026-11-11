@@ -1,0 +1,101 @@
+classDiagram
+direction TB
+
+class TelemetryExtension {
+  +startup(BlueJ)
+  +terminate()
+}
+class TelemetryMenuGenerator {
+  +getToolsMenuItem(BPackage)
+}
+class TelemetryManager {
+  -List~TelemetryEvent~ events
+  +addObserver(TelemetryObserver)
+  +removeObserver(TelemetryObserver)
+  +recordEvent(TelemetryEvent)
+  +getEvents() List~TelemetryEvent~
+}
+class TelemetryEvent {
+  -String eventType
+  -LocalDateTime timestamp
+  -String status
+  +addError(String, int)
+}
+class TelemetryObserver {
+  <<interface>>
+  +onEventRecorded(TelemetryEvent)
+}
+
+class CompilationListener {
+  <<listener>>
+}
+class ExecutionListener {
+  <<listener>>
+}
+class ProjectLifecycleListener {
+  <<listener>>
+}
+class ClassLifecycleListener {
+  <<listener>>
+}
+class EditorActivityListener {
+  <<listener>>
+}
+
+class ReportAggregator {
+  <<analytics>>
+  +getTotalCompilations() int
+  +getCompileSuccessRate() double
+  +getActiveTimeSeconds() double
+  +getIdleTimeSeconds() double
+  +getErrorFrequency() Map
+  +getClassTimeline() List
+}
+
+class ReportWriter {
+  <<interface>>
+  +fileExtension() String
+  +write(ReportAggregator, Path) Path
+}
+class AbstractReportWriter {
+  <<abstract>>
+  +write(ReportAggregator, Path) Path
+  #validate(ReportAggregator, Path)
+  #prepareOutput(Path)
+  #writeReport(ReportAggregator, Path)*
+}
+class JsonExporter {
+  +toJson(ReportAggregator) String
+}
+class PdfReportGenerator
+class ReportExporter {
+  +export(List~TelemetryEvent~) List~Path~
+}
+
+TelemetryExtension *-- TelemetryManager
+TelemetryExtension *-- ReportExporter
+TelemetryExtension ..> TelemetryMenuGenerator : creates
+TelemetryExtension ..> CompilationListener : registers
+TelemetryExtension ..> ExecutionListener : registers
+TelemetryExtension ..> ProjectLifecycleListener : registers
+TelemetryExtension ..> ClassLifecycleListener : registers
+TelemetryMenuGenerator --> TelemetryManager
+TelemetryMenuGenerator --> ReportExporter
+
+CompilationListener --> TelemetryManager : recordEvent
+ExecutionListener --> TelemetryManager : recordEvent
+ProjectLifecycleListener --> TelemetryManager : recordEvent
+ClassLifecycleListener --> TelemetryManager : recordEvent
+EditorActivityListener --> TelemetryManager : recordEvent
+ClassLifecycleListener --> EditorActivityListener : attaches
+
+TelemetryManager o-- TelemetryEvent : stores
+TelemetryManager o-- TelemetryObserver : notifies
+ReportAggregator o-- TelemetryEvent
+
+ReportWriter <|.. AbstractReportWriter
+AbstractReportWriter <|-- JsonExporter
+AbstractReportWriter <|-- PdfReportGenerator
+ReportExporter o-- ReportWriter : strategies
+ReportExporter ..> ReportAggregator : builds once
+ReportWriter ..> ReportAggregator
