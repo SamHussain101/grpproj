@@ -1,3 +1,4 @@
+package com.comp3607grp.telemetry;
 
 import org.junit.jupiter.api.Test;
 
