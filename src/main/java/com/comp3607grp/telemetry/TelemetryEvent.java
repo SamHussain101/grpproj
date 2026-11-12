@@ -1,77 +1,46 @@
-
-
 package com.comp3607grp.telemetry;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * One telemetry record
+ */
 public class TelemetryEvent {
 
+    public static final String DEFAULT_STATUS = "IN PROGRESS";
+    public static final double NO_INTERVAL = -1;
     private final String eventType;
     private final LocalDateTime timestamp;
-
-    private String status;
+    private String status = DEFAULT_STATUS;
     private String errorCode;
-
-    private final List<String> errorMessages;
-    private final List<Integer> lineNumbers;
-
-    private double intervalSeconds;
+    private final List<CompileError> errors = new ArrayList<>();
+    private double intervalSeconds = NO_INTERVAL;
 
     private String exceptionMessage;
     private String consoleSummary;
 
     private double activityDurationSeconds;
-
     private int insertedCharacters;
     private int deletedCharacters;
 
     private String projectName;
     private String className;
-
     private String methodName;
     private String objectName;
 
-    
+    private record CompileError(String message, int lineNumber) { }
 
-    public TelemetryEvent(
-            String eventType,
-            LocalDateTime timestamp) {
-
+    public TelemetryEvent(String eventType, LocalDateTime timestamp) {
         if (eventType == null || eventType.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Event type cannot be empty"
-            );
+            throw new IllegalArgumentException("Event type cannot be empty");
         }
-
         if (timestamp == null) {
-            throw new IllegalArgumentException(
-                    "Timestamp cannot be null"
-            );
+            throw new IllegalArgumentException("Timestamp cannot be null");
         }
-
         this.eventType = eventType;
         this.timestamp = timestamp;
-
-        this.status = "IN PROGRESS";
-        this.errorCode = null;
-
-        this.errorMessages = new ArrayList<>();
-        this.lineNumbers = new ArrayList<>();
-
-        this.intervalSeconds = -1;
-
-        this.exceptionMessage = null;
-        this.consoleSummary = null;
-
-        this.activityDurationSeconds = 0;
-
-        this.projectName = null;
-        this.className = null;
-
-        this.insertedCharacters = 0;
-        this.deletedCharacters = 0;
     }
 
     public String getEventType() {
@@ -87,6 +56,9 @@ public class TelemetryEvent {
     }
 
     public void setStatus(String status) {
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("Status cannot be empty");
+        }
         this.status = status;
     }
 
@@ -98,34 +70,32 @@ public class TelemetryEvent {
         this.errorCode = errorCode;
     }
 
+    /** Records a compilation error. Null or blank messages are ignored. */
     public void addError(String message, int lineNumber) {
-
         if (message != null && !message.isBlank()) {
-            errorMessages.add(message);
-            lineNumbers.add(lineNumber);
+            errors.add(new CompileError(message, lineNumber));
         }
     }
 
+    /** Returns an unmodifiable snapshot; later errors do not change it. */
     public List<String> getErrorMessages() {
-        return new ArrayList<>(errorMessages);
+        return errors.stream().map(CompileError::message).toList();
     }
 
+    /** Returns an unmodifiable snapshot, in the same order as the messages. */
     public List<Integer> getLineNumbers() {
-        return new ArrayList<>(lineNumbers);
+        return errors.stream().map(CompileError::lineNumber).toList();
     }
 
+    /** Seconds since the previous event of the same kind, or {@link #NO_INTERVAL}. */
     public double getIntervalSeconds() {
         return intervalSeconds;
     }
 
     public void setIntervalSeconds(double intervalSeconds) {
-
-        if (intervalSeconds < -1) {
-            throw new IllegalArgumentException(
-                    "Invalid compilation interval"
-            );
+        if (intervalSeconds != NO_INTERVAL) {
+            requireNonNegative(intervalSeconds, "Interval cannot be negative");
         }
-
         this.intervalSeconds = intervalSeconds;
     }
 
@@ -150,14 +120,30 @@ public class TelemetryEvent {
     }
 
     public void setActivityDurationSeconds(double duration) {
-
-        if (duration < 0) {
-            throw new IllegalArgumentException(
-                    "Activity duration cannot be negative"
-            );
-        }
-
+        requireNonNegative(duration, "Activity duration cannot be negative");
         this.activityDurationSeconds = duration;
+    }
+
+    public int getInsertedCharacters() {
+        return insertedCharacters;
+    }
+
+    public void setInsertedCharacters(int insertedCharacters) {
+        if (insertedCharacters < 0) {
+            throw new IllegalArgumentException("Inserted characters cannot be negative");
+        }
+        this.insertedCharacters = insertedCharacters;
+    }
+
+    public int getDeletedCharacters() {
+        return deletedCharacters;
+    }
+
+    public void setDeletedCharacters(int deletedCharacters) {
+        if (deletedCharacters < 0) {
+            throw new IllegalArgumentException("Deleted characters cannot be negative");
+        }
+        this.deletedCharacters = deletedCharacters;
     }
 
     public String getProjectName() {
@@ -186,35 +172,15 @@ public class TelemetryEvent {
 
     public String getObjectName() {
         return objectName;
-    }   
+    }
 
     public void setObjectName(String objectName) {
         this.objectName = objectName;
     }
 
-    public int getInsertedCharacters() {
-    return insertedCharacters;
-}
-
-public void setInsertedCharacters(int insertedCharacters) {
-    if (insertedCharacters < 0) {
-        throw new IllegalArgumentException(
-            "Inserted characters cannot be negative"
-        );
+    private static void requireNonNegative(double value, String message) {
+        if (Double.isNaN(value) || Double.isInfinite(value) || value < 0) {
+            throw new IllegalArgumentException(message);
+        }
     }
-    this.insertedCharacters = insertedCharacters;
-}
-
-public int getDeletedCharacters() {
-    return deletedCharacters;
-}
-
-public void setDeletedCharacters(int deletedCharacters) {
-    if (deletedCharacters < 0) {
-        throw new IllegalArgumentException(
-            "Deleted characters cannot be negative"
-        );
-    }
-    this.deletedCharacters = deletedCharacters;
-}
 }

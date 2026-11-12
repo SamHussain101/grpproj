@@ -13,6 +13,8 @@
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <bluej.lib>C:/Program Files/BlueJ/lib</bluej.lib>
+        <javafx.version>23.0.2</javafx.version>
     </properties>
 
     <dependencies>
@@ -22,7 +24,7 @@
             <artifactId>bluej-api</artifactId>
             <version>5-local</version>
             <scope>system</scope>
-            <systemPath>C:/Program Files/BlueJ/lib/bluej.jar</systemPath>
+            <systemPath>${bluej.lib}/bluej.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -35,47 +37,47 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
-            <version>23.0.2</version>
+            <version>${javafx.version}</version>
             <scope>system</scope>
-            <systemPath>C:/Program Files/BlueJ/lib/javafx-base-23.0.2-win.jar</systemPath>
+            <systemPath>${bluej.lib}/javafx-base-${javafx.version}-win.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
-            <version>23.0.2</version>
+            <version>${javafx.version}</version>
             <scope>system</scope>
-            <systemPath>C:/Program Files/BlueJ/lib/javafx-graphics-23.0.2-win.jar</systemPath>
+            <systemPath>${bluej.lib}/javafx-graphics-${javafx.version}-win.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>23.0.2</version>
+            <version>${javafx.version}</version>
             <scope>system</scope>
-            <systemPath>C:/Program Files/BlueJ/lib/javafx-controls-23.0.2-win.jar</systemPath>
+            <systemPath>${bluej.lib}/javafx-controls-${javafx.version}-win.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>23.0.2</version>
+            <version>${javafx.version}</version>
             <scope>system</scope>
-            <systemPath>C:/Program Files/BlueJ/lib/javafx-fxml-23.0.2-win.jar</systemPath>
+            <systemPath>${bluej.lib}/javafx-fxml-${javafx.version}-win.jar</systemPath>
         </dependency>
 
         
-    <dependency>
-        <groupId>com.google.code.gson</groupId>
-        <artifactId>gson</artifactId>
-        <version>2.13.2</version>
-    </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.2</version>
+        </dependency>
 
-    <dependency>
-        <groupId>org.apache.pdfbox</groupId>
-        <artifactId>pdfbox</artifactId>
-        <version>3.0.5</version>
-    </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.5</version>
+        </dependency>
 
     </dependencies>
 

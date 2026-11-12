@@ -1,4 +1,3 @@
-
 package com.comp3607grp.telemetry;
 
 import java.nio.file.Path;
@@ -7,13 +6,14 @@ import java.util.List;
 import bluej.extensions2.BlueJ;
 import bluej.extensions2.Extension;
 
+import com.comp3607grp.telemetry.listener.*;
+import com.comp3607grp.telemetry.report.*;
+
 public class TelemetryExtension extends Extension {
 
     private BlueJ blueJ;
 
-    private EventBuffer buffer;
     private TelemetryManager manager;
-    private TelemetryWorker worker;
 
     private CompilationListener compilationListener;
     private ExecutionListener executionListener;
@@ -32,14 +32,12 @@ public class TelemetryExtension extends Extension {
 
         this.blueJ = blueJ;
 
-        buffer = new EventBuffer();
         manager = new TelemetryManager();
-        worker = new TelemetryWorker(buffer, manager);
 
-        compilationListener = new CompilationListener(buffer);
-        executionListener = new ExecutionListener(buffer);
-        projectListener = new ProjectLifecycleListener(buffer);
-        classListener = new ClassLifecycleListener(buffer);
+        compilationListener = new CompilationListener(manager);
+        executionListener = new ExecutionListener(manager);
+        projectListener = new ProjectLifecycleListener(manager);
+        classListener = new ClassLifecycleListener(manager);
 
         exporter = new ReportExporter(
                 Path.of(System.getProperty("user.home"), "BlueJ-Telemetry"),
@@ -52,8 +50,6 @@ public class TelemetryExtension extends Extension {
         blueJ.addPackageListener(projectListener);
         blueJ.addClassListener(classListener);
 
-        worker.start();
-
         System.out.println("Telemetry Extension Started");
     }
 
@@ -65,10 +61,6 @@ public class TelemetryExtension extends Extension {
             blueJ.removeInvocationFinishedListener(executionListener);
             blueJ.removePackageListener(projectListener);
             blueJ.removeClassListener(classListener);
-        }
-
-        if (worker != null) {
-            worker.stop();
         }
 
         if (manager != null && exporter != null && !manager.getEvents().isEmpty()) {

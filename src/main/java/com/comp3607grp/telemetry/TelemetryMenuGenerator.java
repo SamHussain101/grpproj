@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.comp3607grp.telemetry.analytics.ReportAggregator;
+import com.comp3607grp.telemetry.report.ReportExporter;
+
 public class TelemetryMenuGenerator extends MenuGenerator {
 
     private final TelemetryManager manager;
@@ -40,20 +43,23 @@ public class TelemetryMenuGenerator extends MenuGenerator {
 
     private void showSummary() {
 
+        // One snapshot of the events, so every figure comes from the same data.
+        ReportAggregator stats = new ReportAggregator(manager.getEvents());
+
         String summary =
-            "Total Events: " + manager.getEvents().size() + "\n"
-            + "Total Compilations: " + manager.getTotalCompilations() + "\n"
-            + "Successful Compilations: " + manager.getSuccessfulCompilations() + "\n"
-            + "Failed Compilations: " + manager.getFailedCompilations() + "\n"
-            + "Total Compilation Errors: " + manager.getTotalErrors() + "\n\n"
+            "Total Events: " + stats.getEvents().size() + "\n"
+            + "Total Compilations: " + stats.getTotalCompilations() + "\n"
+            + "Successful Compilations: " + stats.getSuccessfulCompilations() + "\n"
+            + "Failed Compilations: " + stats.getFailedCompilations() + "\n"
+            + "Total Compilation Errors: " + stats.getTotalCompileErrors() + "\n\n"
 
-            + "Total Method Invocations: " + manager.getTotalRuns() + "\n"
-            + "Successful Invocations: " + manager.getSuccessfulRuns() + "\n"
-            + "Failed Invocations: " + manager.getFailedRuns() + "\n\n"
+            + "Total Method Invocations: " + stats.getTotalRuns() + "\n"
+            + "Successful Invocations: " + stats.getSuccessfulRuns() + "\n"
+            + "Failed Invocations: " + stats.getFailedRuns() + "\n\n"
 
-            + "Editor Activity Events: " + manager.getTotalEditorActivities() + "\n"
+            + "Editor Activity Events: " + stats.getTotalEdits() + "\n"
             + "Recorded Editor Activity Time: "
-            + manager.getTotalEditorActivitySeconds() + " seconds";
+            + stats.getActiveTimeSeconds() + " seconds";
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Telemetry Summary");
